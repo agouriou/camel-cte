@@ -5,6 +5,7 @@ import org.apache.camel.*;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringJUnit4ClassRunner;
 import org.apache.camel.test.spring.MockEndpointsAndSkip;
+import org.elasticsearch.client.transport.NoNodeAvailableException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.annotation.DirtiesContext;
@@ -20,7 +21,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @ContextConfiguration(locations = "/applicationContext.xml")
 @RunWith(CamelSpringJUnit4ClassRunner.class)
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
-@MockEndpointsAndSkip("direct:elasticsearchUser")
+@MockEndpointsAndSkip("direct:elasticsearchUser|direct:technicalErrorOutput")
 public class ESUserOutputRouteMockTest {
 
     @Produce(uri = "direct:esUsersOutput")
@@ -28,6 +29,9 @@ public class ESUserOutputRouteMockTest {
 
     @EndpointInject(uri = "mock:direct:elasticsearchUser")
     private MockEndpoint elasticsearchUser;
+
+    @EndpointInject(uri = "mock:direct:technicalErrorOutput")
+    private MockEndpoint technicalErrorOutput;
 
     @Test
     public void should_aggregate_2_users() throws InterruptedException {
@@ -44,5 +48,18 @@ public class ESUserOutputRouteMockTest {
         esUserOutput.sendBody(new User());
 
         elasticsearchUser.assertIsSatisfied();
+    }
+
+    @Test
+    public void should_treat_technical_exception() throws InterruptedException {
+        elasticsearchUser.whenAnyExchangeReceived((exchange) -> {
+            throw new NoNodeAvailableException("no node");
+        });
+        technicalErrorOutput.expectedMessageCount(2);
+
+        esUserOutput.sendBody(new User());
+        esUserOutput.sendBody(new User());
+
+        technicalErrorOutput.assertIsSatisfied();
     }
 }

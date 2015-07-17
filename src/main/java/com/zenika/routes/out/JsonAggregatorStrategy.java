@@ -13,14 +13,14 @@ import java.util.List;
 @Component
 public class JsonAggregatorStrategy implements AggregationStrategy{
 
-    public Object aggregate(Object oldBody, Object newBody) {
-        List<Object> users = (List<Object>) oldBody;
-        if(users == null){
-            users = new ArrayList<>();
-        }
-        users.add(newBody);
-        return users;
-    }
+//    public Object aggregate(Object oldBody, Object newBody) {
+//        List<Object> users = (List<Object>) oldBody;
+//        if(users == null){
+//            users = new ArrayList<>();
+//        }
+//        users.add(newBody);
+//        return users;
+//    }
 
     @Override
     public Exchange aggregate(Exchange oldExchange, Exchange newExchange) {

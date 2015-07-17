@@ -7,7 +7,17 @@
 	                            http://camel.apache.org/schema/spring/camel-spring.xsd">
 
 
-    <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
+    <bean id="errorHandler" class="org.apache.camel.builder.DeadLetterChannelBuilder">
+        <property name="deadLetterUri" value="${camel.endpoint.technicalerroroutput}"/>
+        <property name="redeliveryPolicy" ref="redeliveryPolicy"/>
+    </bean>
+
+    <bean id="redeliveryPolicy" class="org.apache.camel.processor.RedeliveryPolicy">
+        <property name="maximumRedeliveries" value="2"/>
+        <property name="redeliveryDelay" value="1000"/>
+    </bean>
+
+    <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
         <packageScan>
             <package>com.zenika.routes</package>
         </packageScan>
